@@ -84,6 +84,10 @@ hr + fieldset {
     margin-bottom: 1rem;
 }
 
+[role='group'] button {
+    --pico-form-element-spacing-horizontal: 1rem;
+}
+
 [type='submit'] {
     margin-bottom: 0;
 }
