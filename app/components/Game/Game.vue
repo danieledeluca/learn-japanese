@@ -31,4 +31,8 @@ const { gameLetters, selectedLetters } = storeToRefs(gameStore);
     background-color: var(--pico-muted-color);
     translate: -50%;
 }
+
+.game > * {
+    min-width: 0;
+}
 </style>

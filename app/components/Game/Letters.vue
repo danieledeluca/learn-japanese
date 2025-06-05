@@ -56,6 +56,7 @@ const { setSelectedLetters, clearErrorLetters } = gameStore;
     justify-content: center;
     align-items: center;
     margin-bottom: 0;
+    padding: 0;
     width: 100%;
     height: 100%;
     aspect-ratio: 1;

@@ -64,17 +64,13 @@ form > article {
     margin-bottom: 0;
 }
 
-fieldset:last-child {
+fieldset {
     margin-bottom: 0;
 }
 
 legend {
     margin-bottom: 1.5rem;
     text-align: center;
-}
-
-hr + fieldset {
-    margin-top: 2rem;
 }
 
 .alphabets {
@@ -89,6 +85,6 @@ hr + fieldset {
 }
 
 [type='submit'] {
-    margin-bottom: 0;
+    margin-block: 1rem 0;
 }
 </style>
