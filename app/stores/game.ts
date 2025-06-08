@@ -53,7 +53,7 @@ export const useGameStore = defineStore('game', () => {
     const correctLetters = ref<string[]>([]);
     const errorLetters = ref<string[]>([]);
 
-    const correctsCount = computed(() => doneLetters.value.length / 2);
+    const correctsCount = useLocalStorage('corrects-count', 0);
     const errorsCount = useLocalStorage('errors-count', 0);
 
     function clearGameOptionsError() {
@@ -125,6 +125,7 @@ export const useGameStore = defineStore('game', () => {
 
         doneLetters.value = [];
 
+        correctsCount.value = 0;
         errorsCount.value = 0;
     }
 
@@ -138,6 +139,8 @@ export const useGameStore = defineStore('game', () => {
                 const translation = selectedLetters.value.translation;
 
                 if (selectedAlphabet.value[ideogram] === translation) {
+                    correctsCount.value++;
+
                     correctLetters.value.push(ideogram, translation);
 
                     setTimeout(() => {
@@ -168,10 +171,24 @@ export const useGameStore = defineStore('game', () => {
                 const percentage = Math.round(
                     100 - (100 * errorsCount.value) / gameLetters.value.totals,
                 );
-                const alertText =
-                    percentage <= 0
-                        ? `You finished with a ${errorsCount.value} errors`
-                        : `You finished with a ${percentage}% success rate`;
+
+                let alertText = `
+                    <div class="grid">
+                        <div>
+                            <div><small>❌ Errors</small></div>
+                            <div><strong>${errorsCount.value}</strong></div>
+                        </div>
+                `;
+
+                if (percentage > 0) {
+                    alertText += `
+                        <div>
+                            <div><small>🎯 Success rate</small></div>
+                            <div><strong>${percentage}%</strong></div>
+                        </div>`;
+                }
+
+                alertText += `</div>`;
 
                 modal('success', 'Congratulation!', alertText, 'Play again', resetGame);
             }

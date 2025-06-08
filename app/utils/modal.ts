@@ -9,7 +9,7 @@ export function modal(
 ) {
     Swal.fire({
         title,
-        text,
+        html: text,
         icon,
         confirmButtonText,
         customClass: {

@@ -38,3 +38,7 @@ body:has(.bottom-bar) .page-wrapper {
 .swal2-confirm:is(:hover, :active) {
     background-color: var(--pico-background-color);
 }
+
+.swal2-html-container .grid {
+    grid-template-columns: repeat(auto-fit, minmax(0%, 1fr));
+}
