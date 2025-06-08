@@ -60,17 +60,25 @@ const { setSelectedLetters } = gameStore;
     aspect-ratio: 4 / 3;
     background-color: var(--background-color);
     color: var(--color, var(--pico-color));
-    border: 0.25rem solid var(--border-color);
+    border: 0.125rem solid var(--border-color);
     font-size: 1.5rem;
     line-height: 1;
     user-select: none;
+    cursor: pointer;
     opacity: var(--opacity, 1);
     transition: all 0.3s ease-in-out;
 }
 
-.letter:is(:not(.is-done):hover, .is-active) {
+.letter:hover {
     --background-color: var(--pico-card-sectioning-background-color);
-    cursor: pointer;
+}
+
+.letter:is(.is-active, .is-correct, .is-incorrect) {
+    --background-color: color-mix(in srgb, var(--color) 10%, transparent 100%);
+}
+
+.letter:is(.is-done, .is-correct, .is-incorrect) {
+    pointer-events: none;
 }
 
 .letter.is-active {
@@ -84,8 +92,6 @@ const { setSelectedLetters } = gameStore;
 
 .letter:is(.is-correct, .is-incorrect) {
     --border-color: var(--color);
-
-    pointer-events: none;
 }
 
 .letter.is-correct {
