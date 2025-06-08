@@ -6,8 +6,8 @@ const { letters, type, title } = defineProps<{
 }>();
 
 const gameStore = useGameStore();
-const { selectedLetters, correctLetters, errorLetters } = storeToRefs(gameStore);
-const { setSelectedLetters, clearErrorLetters } = gameStore;
+const { selectedLetters, doneLetters, correctLetters, errorLetters } = storeToRefs(gameStore);
+const { setSelectedLetters } = gameStore;
 </script>
 
 <template>
@@ -19,11 +19,11 @@ const { setSelectedLetters, clearErrorLetters } = gameStore;
             class="letter"
             :class="{
                 'is-active': selectedLetters[type] === letter,
+                'is-done': doneLetters.includes(letter),
                 'is-correct': correctLetters.includes(letter),
                 'is-incorrect': errorLetters.includes(letter),
             }"
             @click="setSelectedLetters(type, letter)"
-            @animationend="clearErrorLetters(letter)"
         >
             {{ letter }}
         </article>
@@ -46,10 +46,9 @@ const { setSelectedLetters, clearErrorLetters } = gameStore;
 }
 
 .letter {
-    --color: var(--pico-card-color);
+    --color: var(--pico-primary-inverse);
     --background-color: var(--pico-card-background-color);
     --border-color: var(--pico-muted-border-color);
-    --opacity: 0.8;
 
     position: relative;
     display: flex;
@@ -58,47 +57,64 @@ const { setSelectedLetters, clearErrorLetters } = gameStore;
     margin-bottom: 0;
     padding: 0;
     width: 100%;
-    height: 100%;
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
     background-color: var(--background-color);
-    color: var(--color);
+    color: var(--color, var(--pico-color));
     border: 0.25rem solid var(--border-color);
-    border-radius: 100%;
-    font-size: 2rem;
+    font-size: 1.5rem;
     line-height: 1;
     user-select: none;
-    opacity: var(--opacity);
-    cursor: pointer;
+    opacity: var(--opacity, 1);
     transition: all 0.3s ease-in-out;
 }
 
-.letter:is(:hover, .is-active) {
+.letter:is(:not(.is-done):hover, .is-active) {
     --background-color: var(--pico-card-sectioning-background-color);
-    --opacity: 1;
+    cursor: pointer;
 }
 
 .letter.is-active {
     --border-color: var(--pico-primary-border);
+    --color: var(--pico-primary);
+}
 
-    scale: 1.1;
+.letter.is-done {
+    --opacity: 0.3;
 }
 
 .letter:is(.is-correct, .is-incorrect) {
-    --color: var(--pico-contrast-inverse);
-    --border-color: color-mix(in srgb, var(--background-color) 50%, var(--pico-primary-inverse));
-    --opacity: 0.5;
+    --border-color: var(--color);
 
     pointer-events: none;
 }
 
 .letter.is-correct {
-    --background-color: var(--pico-ins-color);
+    --color: var(--pico-ins-color);
+
+    animation: pulse 1s ease-in-out both;
 }
 
 .letter.is-incorrect {
-    --background-color: var(--pico-del-color);
+    --color: var(--pico-del-color);
 
     animation: shakeX 1s ease-in-out both;
+}
+
+@keyframes pulse {
+    0% {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+    }
+
+    50% {
+        -webkit-transform: scale3d(1.05, 1.05, 1.05);
+        transform: scale3d(1.05, 1.05, 1.05);
+    }
+
+    to {
+        -webkit-transform: scaleX(1);
+        transform: scaleX(1);
+    }
 }
 
 @keyframes shakeX {

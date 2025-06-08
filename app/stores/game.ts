@@ -49,10 +49,11 @@ export const useGameStore = defineStore('game', () => {
         ideogram: '',
         translation: '',
     });
-    const correctLetters = useLocalStorage<string[]>('correct-letter', []);
+    const doneLetters = useLocalStorage<string[]>('done-letters', []);
+    const correctLetters = ref<string[]>([]);
     const errorLetters = ref<string[]>([]);
 
-    const correctsCount = computed(() => correctLetters.value.length / 2);
+    const correctsCount = computed(() => doneLetters.value.length / 2);
     const errorsCount = useLocalStorage('errors-count', 0);
 
     function clearGameOptionsError() {
@@ -100,6 +101,12 @@ export const useGameStore = defineStore('game', () => {
         selectedLetters.value[type] = value;
     }
 
+    function clearCorrectLetters(letter: string) {
+        const index = correctLetters.value.findIndex((_letter) => _letter === letter);
+
+        correctLetters.value.splice(index, 1);
+    }
+
     function clearErrorLetters(letter: string) {
         const index = errorLetters.value.findIndex((_letter) => _letter === letter);
 
@@ -116,7 +123,7 @@ export const useGameStore = defineStore('game', () => {
         gameLetters.value.translation = [];
         gameLetters.value.totals = 0;
 
-        correctLetters.value = [];
+        doneLetters.value = [];
 
         errorsCount.value = 0;
     }
@@ -132,10 +139,23 @@ export const useGameStore = defineStore('game', () => {
 
                 if (selectedAlphabet.value[ideogram] === translation) {
                     correctLetters.value.push(ideogram, translation);
+
+                    setTimeout(() => {
+                        clearCorrectLetters(ideogram);
+                        clearCorrectLetters(translation);
+
+                        doneLetters.value.push(ideogram);
+                        doneLetters.value.push(translation);
+                    }, 1000);
                 } else {
                     errorsCount.value++;
 
                     errorLetters.value.push(ideogram, translation);
+
+                    setTimeout(() => {
+                        clearErrorLetters(ideogram);
+                        clearErrorLetters(translation);
+                    }, 1000);
                 }
 
                 setTimeout(() => {
@@ -173,6 +193,7 @@ export const useGameStore = defineStore('game', () => {
         amountOptions,
         gameLetters,
         selectedLetters,
+        doneLetters,
         correctLetters,
         errorLetters,
         correctsCount,
