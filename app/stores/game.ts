@@ -113,7 +113,16 @@ export const useGameStore = defineStore('game', () => {
         errorLetters.value.splice(index, 1);
     }
 
-    function resetGame() {
+    function playAgain() {
+        generateGameLetters();
+
+        doneLetters.value = [];
+
+        correctsCount.value = 0;
+        errorsCount.value = 0;
+    }
+
+    function newGame() {
         showGame.value = false;
 
         gameOptions.value.alphabet.value = undefined;
@@ -190,7 +199,15 @@ export const useGameStore = defineStore('game', () => {
 
                 alertText += `</div>`;
 
-                modal('success', 'Congratulation!', alertText, 'Play again', resetGame);
+                modal(
+                    'success',
+                    'Congratulation!',
+                    alertText,
+                    'Play again',
+                    'New game',
+                    playAgain,
+                    newGame,
+                );
             }
         },
         {
@@ -219,6 +236,6 @@ export const useGameStore = defineStore('game', () => {
         startGame,
         setSelectedLetters,
         clearErrorLetters,
-        resetGame,
+        newGame,
     };
 });

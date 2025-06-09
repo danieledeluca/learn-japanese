@@ -11,11 +11,7 @@ const { gameLetters, correctsCount, errorsCount } = storeToRefs(gameStore);
             </ul>
             <ul>
                 <li>
-                    <button
-                        type="button"
-                        class="button-small contrast"
-                        @click="gameStore.resetGame"
-                    >
+                    <button type="button" class="button-small contrast" @click="gameStore.newGame">
                         <span>Reset</span>
                     </button>
                 </li>
