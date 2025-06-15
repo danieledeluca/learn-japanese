@@ -13,20 +13,21 @@ const { setSelectedLetters } = gameStore;
 <template>
     <div class="letters">
         <h3 class="title">{{ title }}</h3>
-        <article
-            v-for="letter in letters[type]"
-            :key="letter"
-            class="letter"
-            :class="{
-                'is-active': selectedLetters[type] === letter,
-                'is-done': doneLetters.includes(letter),
-                'is-correct': correctLetters.includes(letter),
-                'is-incorrect': errorLetters.includes(letter),
-            }"
-            @click="setSelectedLetters(type, letter)"
-        >
-            {{ letter }}
-        </article>
+        <template v-for="[letter, solution] in letters[type]" :key="letter">
+            <article
+                v-if="letter && solution"
+                class="letter"
+                :class="{
+                    'is-active': selectedLetters[type] === letter,
+                    'is-done': doneLetters.includes(letter),
+                    'is-correct': correctLetters.includes(solution),
+                    'is-incorrect': errorLetters.includes(letter),
+                }"
+                @click="setSelectedLetters(type, letter)"
+            >
+                {{ letter }}
+            </article>
+        </template>
     </div>
 </template>
 

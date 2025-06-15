@@ -23,4 +23,6 @@ export type AlphabetOptions = {
 
 export type LetterType = 'ideogram' | 'translation';
 
-export type GameLetters = Record<LetterType, string[]> & { totals: number };
+export type GameLetters = Record<LetterType, string[][]> & {
+    totals: number;
+};

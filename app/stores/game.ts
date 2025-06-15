@@ -92,8 +92,16 @@ export const useGameStore = defineStore('game', () => {
             gameOptions.value.amount.value || maxAmount.value,
         );
 
-        gameLetters.value.ideogram = shuffleArray(shuffledAlphabet.map((letter) => letter[0]));
-        gameLetters.value.translation = shuffleArray(shuffledAlphabet.map((letter) => letter[1]));
+        gameLetters.value.ideogram = shuffleArray(
+            shuffledAlphabet.map((letter) => {
+                return [letter[0], letter.join('')];
+            }),
+        );
+        gameLetters.value.translation = shuffleArray(
+            shuffledAlphabet.map((letter) => {
+                return [letter[1], letter.join('')];
+            }),
+        );
         gameLetters.value.totals = shuffledAlphabet.length;
     }
 
@@ -150,11 +158,10 @@ export const useGameStore = defineStore('game', () => {
                 if (selectedAlphabet.value[ideogram] === translation) {
                     correctsCount.value++;
 
-                    correctLetters.value.push(ideogram, translation);
+                    correctLetters.value.push(`${ideogram}${translation}`);
 
                     setTimeout(() => {
-                        clearCorrectLetters(ideogram);
-                        clearCorrectLetters(translation);
+                        clearCorrectLetters(`${ideogram}${translation}`);
 
                         doneLetters.value.push(ideogram);
                         doneLetters.value.push(translation);
