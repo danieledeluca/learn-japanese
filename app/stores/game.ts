@@ -4,6 +4,7 @@ import Katakana from '~/components/Game/Katakana.vue';
 
 export const useGameStore = defineStore('game', () => {
     const showGame = useLocalStorage('show-game', false);
+    const timeStart = useLocalStorage('time-start', 0);
 
     const gameOptions = useLocalStorage<GameOptions>('game-options', {
         alphabet: {
@@ -83,6 +84,7 @@ export const useGameStore = defineStore('game', () => {
             generateGameLetters();
 
             showGame.value = true;
+            timeStart.value = new Date().getTime();
         }
     }
 
@@ -124,6 +126,8 @@ export const useGameStore = defineStore('game', () => {
     function playAgain() {
         generateGameLetters();
 
+        timeStart.value = new Date().getTime();
+
         doneLetters.value = [];
 
         correctsCount.value = 0;
@@ -132,6 +136,8 @@ export const useGameStore = defineStore('game', () => {
 
     function newGame() {
         showGame.value = false;
+
+        timeStart.value = 0;
 
         gameOptions.value.alphabet.value = undefined;
         gameOptions.value.amount.value = undefined;
@@ -184,6 +190,16 @@ export const useGameStore = defineStore('game', () => {
             }
 
             if (gameLetters.value.totals && gameLetters.value.totals === correctsCount.value) {
+                const timeEnd = new Date().getTime();
+                const time = new Intl.DateTimeFormat(window.navigator.language, {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false,
+                    hourCycle: 'h24',
+                    timeZone: 'UTC',
+                }).format(timeEnd - timeStart.value);
+
                 const percentage = Math.round(
                     100 - (100 * errorsCount.value) / gameLetters.value.totals,
                 );
@@ -193,6 +209,10 @@ export const useGameStore = defineStore('game', () => {
                         <div>
                             <div><small>❌ Errors</small></div>
                             <div><strong>${errorsCount.value}</strong></div>
+                        </div>
+                        <div>
+                            <div><small>⏱️ Time</small></div>
+                            <div><strong>${time}</strong></div>
                         </div>
                 `;
 
