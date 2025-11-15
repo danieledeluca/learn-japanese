@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { letters, type, title } = defineProps<{
-    letters: GameLetters;
+    letters: Letter[];
     type: LetterType;
     title: string;
 }>();
@@ -13,19 +13,29 @@ const { setSelectedLetters } = gameStore;
 <template>
     <div class="letters">
         <h3 class="title">{{ title }}</h3>
-        <template v-for="[letter, solution] in letters[type]" :key="letter">
+        <template v-for="letter in letters" :key="letter">
             <article
-                v-if="letter && solution"
+                v-if="letter"
                 class="letter"
                 :class="{
-                    'is-active': selectedLetters[type] === letter,
-                    'is-done': doneLetters.includes(letter),
-                    'is-correct': correctLetters.includes(solution),
-                    'is-incorrect': errorLetters.includes(letter),
+                    'is-active': selectedLetters[type] === letter[type],
+                    'is-done': doneLetters.includes(letter[type]),
+                    'is-correct': correctLetters.includes(
+                        `${letter.ideogram}${letter.translation}`,
+                    ),
+                    'is-incorrect': errorLetters.includes(letter[type]),
                 }"
-                @click="setSelectedLetters(type, letter)"
+                @click="setSelectedLetters(type, letter[type])"
             >
-                {{ letter }}
+                <template v-if="letter.label && type === 'translation'">
+                    {{ letter.label }}
+                    <span class="label">
+                        {{ letter[type] }}
+                    </span>
+                </template>
+                <template v-else>
+                    {{ letter[type] }}
+                </template>
             </article>
         </template>
     </div>
@@ -105,6 +115,14 @@ const { setSelectedLetters } = gameStore;
     --color: var(--pico-del-color);
 
     animation: shakeX 1s ease-in-out both;
+}
+
+.letter .label {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--pico-muted-color);
 }
 
 @keyframes pulse {

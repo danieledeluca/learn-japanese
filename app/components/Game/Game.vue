@@ -5,8 +5,8 @@ const { gameLetters, selectedLetters } = storeToRefs(gameStore);
 
 <template>
     <div class="game">
-        <GameLetters :letters="gameLetters" type="ideogram" title="Ideograms" />
-        <GameLetters :letters="gameLetters" type="translation" title="Translations" />
+        <GameLetters :letters="gameLetters.ideogram" type="ideogram" title="Ideograms" />
+        <GameLetters :letters="gameLetters.translation" type="translation" title="Translations" />
     </div>
     <input v-model="selectedLetters.ideogram" type="hidden" />
     <input v-model="selectedLetters.translation" type="hidden" />

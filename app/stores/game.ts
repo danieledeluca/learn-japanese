@@ -17,10 +17,10 @@ export const useGameStore = defineStore('game', () => {
         },
     });
 
-    const selectedAlphabet = computed<{ [key: string]: string }>(() => {
+    const selectedAlphabet = computed<Letter[]>(() => {
         const alphabet = gameOptions.value.alphabet.value;
 
-        return alphabet ? alphabets[alphabet] : {};
+        return alphabet ? alphabets[alphabet] : [];
     });
 
     const alphabetOptions: AlphabetOptions[] = [
@@ -89,22 +89,14 @@ export const useGameStore = defineStore('game', () => {
     }
 
     function generateGameLetters() {
-        const shuffledAlphabet = shuffleArray(Object.entries(selectedAlphabet.value)).splice(
+        const shuffledLetters = shuffleArray(selectedAlphabet.value).splice(
             0,
             gameOptions.value.amount.value || maxAmount.value,
         );
 
-        gameLetters.value.ideogram = shuffleArray(
-            shuffledAlphabet.map((letter) => {
-                return [letter[0], letter.join('')];
-            }),
-        );
-        gameLetters.value.translation = shuffleArray(
-            shuffledAlphabet.map((letter) => {
-                return [letter[1], letter.join('')];
-            }),
-        );
-        gameLetters.value.totals = shuffledAlphabet.length;
+        gameLetters.value.ideogram = shuffleArray(shuffledLetters);
+        gameLetters.value.translation = shuffleArray(shuffledLetters);
+        gameLetters.value.totals = shuffledLetters.length;
     }
 
     function setSelectedLetters(type: LetterType, value: string) {
@@ -161,7 +153,11 @@ export const useGameStore = defineStore('game', () => {
                 const ideogram = selectedLetters.value.ideogram;
                 const translation = selectedLetters.value.translation;
 
-                if (selectedAlphabet.value[ideogram] === translation) {
+                const letter = selectedAlphabet.value.find(
+                    (letter) => letter.ideogram === ideogram,
+                );
+
+                if (letter && letter.translation === translation) {
                     correctsCount.value++;
 
                     correctLetters.value.push(`${ideogram}${translation}`);
@@ -169,8 +165,7 @@ export const useGameStore = defineStore('game', () => {
                     setTimeout(() => {
                         clearCorrectLetters(`${ideogram}${translation}`);
 
-                        doneLetters.value.push(ideogram);
-                        doneLetters.value.push(translation);
+                        doneLetters.value.push(ideogram, translation);
                     }, 1000);
                 } else {
                     errorsCount.value++;

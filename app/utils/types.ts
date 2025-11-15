@@ -14,6 +14,12 @@ export type GameOptions = {
     amount: GameOption<number>;
 };
 
+export type Letter = {
+    ideogram: string;
+    translation: string;
+    label?: string;
+};
+
 export type AlphabetOptions = {
     title: string;
     description: string;
@@ -23,6 +29,6 @@ export type AlphabetOptions = {
 
 export type LetterType = 'ideogram' | 'translation';
 
-export type GameLetters = Record<LetterType, string[][]> & {
+export type GameLetters = Record<LetterType, Letter[]> & {
     totals: number;
 };
