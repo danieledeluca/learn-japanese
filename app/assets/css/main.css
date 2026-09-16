@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+    --animate-letter-pulse: letter-pulse 1s ease-in-out both;
+    --animate-shake-x: shake-x 1s ease-in-out both;
+
+    @keyframes letter-pulse {
+        0% {
+            scale: 1;
+        }
+
+        50% {
+            scale: 1.05;
+        }
+
+        to {
+            scale: 1;
+        }
+    }
+
+    @keyframes shake-x {
+        0%,
+        to {
+            translate: 0;
+        }
+
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+            translate: -5px;
+        }
+
+        20%,
+        40%,
+        60%,
+        80% {
+            translate: 5px;
+        }
+    }
+}

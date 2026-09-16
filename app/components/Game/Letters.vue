@@ -1,184 +1,37 @@
 <script setup lang="ts">
-const { letters, type, title } = defineProps<{
-    letters: Letter[];
-    type: LetterType;
+const { title, letters, letterType, showHint } = defineProps<{
     title: string;
+    letters: string[];
+    letterType: LetterType;
+    showHint?: boolean;
 }>();
 
 const gameStore = useGameStore();
-const { selectedLetters, doneLetters, correctLetters, errorLetters } = storeToRefs(gameStore);
-const { setSelectedLetters } = gameStore;
+const { selectedAlphabet, selectedLetters } = storeToRefs(gameStore);
+
+function getLetterLabel(letter: string) {
+    const currentLetter = selectedAlphabet.value.find((selectedLetter) => selectedLetter[letterType] === letter);
+    const letterLabel = currentLetter?.[letterType] || '';
+
+    return showHint ? currentLetter?.label || letterLabel : letterLabel;
+}
 </script>
 
 <template>
-    <div class="letters">
-        <h3 class="title">{{ title }}</h3>
-        <template v-for="letter in letters" :key="letter">
-            <article
-                v-if="letter"
-                class="letter"
-                :class="{
-                    'is-active': selectedLetters[type] === letter[type],
-                    'is-done': doneLetters.includes(letter[type]),
-                    'is-correct': correctLetters.includes(
-                        `${letter.ideogram}${letter.translation}`,
-                    ),
-                    'is-incorrect': errorLetters.includes(letter[type]),
-                }"
-                @click="setSelectedLetters(type, letter[type])"
-            >
-                <template v-if="letter.label && type === 'translation'">
-                    {{ letter.label }}
-                    <span class="label">
-                        {{ letter[type] }}
-                    </span>
-                </template>
-                <template v-else>
-                    {{ letter[type] }}
-                </template>
-            </article>
-        </template>
+    <div>
+        <div class="mb-4 truncate text-center text-3xl font-bold sm:mb-6 lg:mb-8">
+            {{ title }}
+        </div>
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(70px,1fr))]">
+            <GameLetter
+                v-for="letter in letters"
+                :key="letter"
+                :label="getLetterLabel(letter)"
+                :hint="showHint && getLetterLabel(letter) !== letter ? letter : undefined"
+                :isSelected="selectedLetters[letterType] === letter"
+                :status="gameStore.getLetterStatus(letterType, letter)"
+                @toggleLetter="(value) => gameStore.toggleLetterSelection(letterType, value)"
+            />
+        </div>
     </div>
 </template>
-
-<style scoped>
-.letters {
-    --grid-columns: 2;
-
-    display: grid;
-    grid-template-columns: repeat(var(--grid-columns), 1fr);
-    gap: 1rem;
-}
-
-.title {
-    grid-column: 1 / -1;
-    margin-bottom: 1.5rem;
-    text-align: center;
-}
-
-.letter {
-    --color: var(--pico-primary-inverse);
-    --background-color: var(--pico-card-background-color);
-    --border-color: var(--pico-muted-border-color);
-
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 0;
-    padding: 0;
-    width: 100%;
-    aspect-ratio: 4 / 3;
-    background-color: var(--background-color);
-    color: var(--color, var(--pico-color));
-    border: 0.125rem solid var(--border-color);
-    font-size: 1.5rem;
-    line-height: 1;
-    user-select: none;
-    cursor: pointer;
-    opacity: var(--opacity, 1);
-    transition: all 0.3s ease-in-out;
-}
-
-.letter:hover {
-    --background-color: var(--pico-card-sectioning-background-color);
-}
-
-.letter:is(.is-active, .is-correct, .is-incorrect) {
-    --background-color: color-mix(in srgb, var(--color) 10%, transparent 100%);
-}
-
-.letter:is(.is-done, .is-correct, .is-incorrect) {
-    pointer-events: none;
-}
-
-.letter.is-active {
-    --border-color: var(--pico-primary-border);
-    --color: var(--pico-primary);
-}
-
-.letter.is-done {
-    --opacity: 0.3;
-}
-
-.letter:is(.is-correct, .is-incorrect) {
-    --border-color: var(--color);
-}
-
-.letter.is-correct {
-    --color: var(--pico-ins-color);
-
-    animation: pulse 1s ease-in-out both;
-}
-
-.letter.is-incorrect {
-    --color: var(--pico-del-color);
-
-    animation: shakeX 1s ease-in-out both;
-}
-
-.letter .label {
-    position: absolute;
-    top: 0.25rem;
-    right: 0.25rem;
-    font-size: 0.75rem;
-    color: var(--pico-muted-color);
-}
-
-@keyframes pulse {
-    0% {
-        -webkit-transform: scaleX(1);
-        transform: scaleX(1);
-    }
-
-    50% {
-        -webkit-transform: scale3d(1.05, 1.05, 1.05);
-        transform: scale3d(1.05, 1.05, 1.05);
-    }
-
-    to {
-        -webkit-transform: scaleX(1);
-        transform: scaleX(1);
-    }
-}
-
-@keyframes shakeX {
-    0%,
-    to {
-        transform: translateZ(0);
-    }
-
-    10%,
-    30%,
-    50%,
-    70%,
-    90% {
-        transform: translate3d(-10px, 0, 0);
-    }
-
-    20%,
-    40%,
-    60%,
-    80% {
-        transform: translate3d(10px, 0, 0);
-    }
-}
-
-@media (min-width: 768px) {
-    .letters {
-        --grid-columns: 3;
-    }
-}
-
-@media (min-width: 1024px) {
-    .letters {
-        --grid-columns: 4;
-    }
-}
-
-@media (min-width: 1280px) {
-    .letters {
-        grid-template-columns: repeat(auto-fit, minmax(122px, 1fr));
-    }
-}
-</style>

@@ -1,22 +1,19 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-    compatibilityDate: '2025-05-15',
-    devtools: { enabled: true },
-    future: {
-        compatibilityVersion: 4,
+    compatibilityDate: '2025-07-15',
+    devtools: {
+        enabled: true,
     },
-    app: {
-        head: {
-            title: 'Learn Japanese',
-            link: [
-                {
-                    rel: 'stylesheet',
-                    href: 'https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css',
-                },
-            ],
+    modules: ['@nuxt/eslint', '@nuxt/ui', '@pinia/nuxt'],
+    css: ['~/assets/css/main.css'],
+    eslint: {
+        config: {
+            standalone: false,
         },
     },
-    css: ['~/assets/main.css'],
-    ssr: false,
-    modules: ['@nuxt/eslint', '@pinia/nuxt', '@vueuse/nuxt'],
+    routeRules: {
+        '/game': {
+            ssr: false,
+        },
+    },
 });

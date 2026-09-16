@@ -1,18 +1,35 @@
-import type alphabets from '@/assets/alphabets.json';
+export type AlphabetValue = 'hiragana' | 'katakana';
 
-export type AlphabetType = keyof typeof alphabets;
+export type AlphabetOption = {
+    title: string;
+    description: string;
+    image: Component;
+    buttonLabel: string;
+    value: AlphabetValue;
+};
 
-export type GameOptionType = 'alphabet' | 'amount';
+export type GameStatus = 'idle' | 'playing' | 'finished';
 
-export type GameOption<T> = {
-    value: T | undefined;
-    error: string;
+export type GameTimer = {
+    start: number;
+    end: number;
 };
 
 export type GameOptions = {
-    alphabet: GameOption<AlphabetType>;
-    amount: GameOption<number>;
+    alphabet?: AlphabetValue;
+    amount?: number;
 };
+
+export type GameScore = {
+    time: string;
+    precision: string;
+    corrects: number;
+    errors: number;
+};
+
+export type LetterType = 'ideogram' | 'translation';
+
+export type LetterStatus = 'correct' | 'error' | 'done';
 
 export type Letter = {
     ideogram: string;
@@ -20,15 +37,13 @@ export type Letter = {
     label?: string;
 };
 
-export type AlphabetOptions = {
-    title: string;
-    description: string;
-    type: AlphabetType;
-    icon: Component;
+export type LetterPool = {
+    ideograms: string[];
+    translations: string[];
+    totals: number;
 };
 
-export type LetterType = 'ideogram' | 'translation';
-
-export type GameLetters = Record<LetterType, Letter[]> & {
-    totals: number;
+export type SelectedLetters = {
+    ideogram?: string;
+    translation?: string;
 };

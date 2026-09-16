@@ -1,263 +1,143 @@
-import alphabets from '@/assets/alphabets.json';
-import Hiragana from '~/components/Game/Hiragana.vue';
-import Katakana from '~/components/Game/Katakana.vue';
+import { useLocalStorage } from '@vueuse/core';
+
+import { useLetterMatching } from '~/composable/useLetterMatching';
+import { useLetterPool } from '~/composable/useLetterPool';
 
 export const useGameStore = defineStore('game', () => {
-    const showGame = useLocalStorage('show-game', false);
-    const timeStart = useLocalStorage('time-start', 0);
+    const toast = useToast();
 
+    const gameStatus = useLocalStorage<GameStatus>('game-status', 'idle');
+
+    const gameTimer = useLocalStorage<GameTimer>('game-timer', {
+        start: 0,
+        end: 0,
+    });
     const gameOptions = useLocalStorage<GameOptions>('game-options', {
-        alphabet: {
-            value: undefined,
-            error: '',
-        },
-        amount: {
-            value: undefined,
-            error: '',
-        },
+        alphabet: undefined,
+        amount: undefined,
+    });
+    const gameScore = useLocalStorage<GameScore>('game-score', {
+        time: '',
+        precision: '',
+        corrects: 0,
+        errors: 0,
     });
 
-    const selectedAlphabet = computed<Letter[]>(() => {
-        const alphabet = gameOptions.value.alphabet.value;
+    const showModal = ref(gameStatus.value === 'finished');
 
-        return alphabet ? alphabets[alphabet] : [];
+    const { letterPool, selectedAlphabet, generateLetterPool, resetLetterPool } = useLetterPool(gameOptions);
+    const {
+        selectedLetters,
+        getLetterStatus,
+        toggleLetterSelection,
+        resetMatching,
+    } = useLetterMatching(gameScore, selectedAlphabet);
+
+    watch(() => gameScore.value.corrects, (corrects) => {
+        if (corrects > 0 && corrects === letterPool.value.totals) {
+            finishGame();
+        }
     });
 
-    const alphabetOptions: AlphabetOptions[] = [
-        {
-            title: 'Hiragana',
-            description: 'Phonetic alphabet used for native Japanese words',
-            type: 'hiragana',
-            icon: markRaw(Hiragana),
-        },
-        {
-            title: 'Katakana',
-            description: 'Phonetic alphabet used for foreign words and onomatopoeias',
-            type: 'katakana',
-            icon: markRaw(Katakana),
-        },
-    ];
-
-    const maxAmount = computed(() => Object.entries(selectedAlphabet.value).length);
-    const amountOptions = computed(() => [15, 30, 50, maxAmount.value]);
-
-    const gameLetters = useLocalStorage<GameLetters>('game-letters', {
-        ideogram: [],
-        translation: [],
-        totals: 0,
-    });
-    const selectedLetters = ref<Record<LetterType, string>>({
-        ideogram: '',
-        translation: '',
-    });
-    const doneLetters = useLocalStorage<string[]>('done-letters', []);
-    const correctLetters = ref<string[]>([]);
-    const errorLetters = ref<string[]>([]);
-
-    const correctsCount = useLocalStorage('corrects-count', 0);
-    const errorsCount = useLocalStorage('errors-count', 0);
-
-    function clearGameOptionsError() {
-        Object.values(gameOptions.value).forEach((option) => {
-            option.error = '';
-        });
+    function resetGameTimer() {
+        gameTimer.value.start = 0;
+        gameTimer.value.end = 0;
     }
 
-    function setGameOption(option: 'alphabet', value: AlphabetType | undefined): void;
-    function setGameOption(option: 'amount', value: number | undefined): void;
-    function setGameOption(option: GameOptionType, value: AlphabetType | number | undefined) {
-        gameOptions.value[option].value = value;
-    }
-
-    function validateGameOptions() {
-        Object.values(gameOptions.value).forEach((option) => {
-            option.error = option.value ? '' : 'This field is required';
-        });
+    function resetGameScore() {
+        gameScore.value.time = '';
+        gameScore.value.precision = '';
+        gameScore.value.corrects = 0;
+        gameScore.value.errors = 0;
     }
 
     function startGame() {
-        validateGameOptions();
+        if (!gameOptions.value.alphabet) {
+            toast.add({
+                id: 'alphabet',
+                color: 'error',
+                title: `Please select an alphabet`,
+            });
 
-        const hasErrors = Object.values(gameOptions.value).some((option) => option.error);
-
-        if (!hasErrors) {
-            generateGameLetters();
-
-            showGame.value = true;
-            timeStart.value = new Date().getTime();
+            return;
         }
+
+        if (!gameOptions.value.amount) {
+            toast.add({
+                id: 'amount',
+                color: 'error',
+                title: `Please select an amount`,
+            });
+
+            return;
+        }
+
+        // const missingOptions = validateGameOptions(gameOptions.value);
+
+        // if (missingOptions.length > 0) {
+        //     missingOptions.forEach((key) => {
+        //         toast.add({
+        //             id: key,
+        //             color: 'error',
+        //             title: `Please select an ${key}`,
+        //         });
+        //     });
+
+        //     return;
+        // }
+
+        generateLetterPool();
+
+        gameStatus.value = 'playing';
+
+        gameTimer.value.start = Date.now();
     }
 
-    function generateGameLetters() {
-        const shuffledLetters = shuffleArray(selectedAlphabet.value).splice(
-            0,
-            gameOptions.value.amount.value || maxAmount.value,
-        );
+    function finishGame() {
+        gameStatus.value = 'finished';
 
-        gameLetters.value.ideogram = shuffleArray(shuffledLetters);
-        gameLetters.value.translation = shuffleArray(shuffledLetters);
-        gameLetters.value.totals = shuffledLetters.length;
+        gameTimer.value.end = Date.now();
+
+        gameScore.value.time = formatDuration(gameTimer.value.end - gameTimer.value.start);
+        // eslint-disable-next-line style/max-len
+        gameScore.value.precision = Math.max(0, (100 * (letterPool.value.totals - gameScore.value.errors) / letterPool.value.totals)).toFixed(2);
+
+        showModal.value = true;
     }
 
-    function setSelectedLetters(type: LetterType, value: string) {
-        selectedLetters.value[type] = value;
+    function resetGame() {
+        gameStatus.value = 'idle';
+
+        gameOptions.value.alphabet = undefined;
+        gameOptions.value.amount = undefined;
+
+        resetGameTimer();
+        resetGameScore();
+        resetLetterPool();
+        resetMatching();
     }
 
-    function clearCorrectLetters(letter: string) {
-        const index = correctLetters.value.findIndex((_letter) => _letter === letter);
+    function replayGame() {
+        resetGameTimer();
+        resetGameScore();
+        resetLetterPool();
+        resetMatching();
 
-        correctLetters.value.splice(index, 1);
+        startGame();
     }
-
-    function clearErrorLetters(letter: string) {
-        const index = errorLetters.value.findIndex((_letter) => _letter === letter);
-
-        errorLetters.value.splice(index, 1);
-    }
-
-    function playAgain() {
-        generateGameLetters();
-
-        timeStart.value = new Date().getTime();
-
-        doneLetters.value = [];
-
-        correctsCount.value = 0;
-        errorsCount.value = 0;
-    }
-
-    function newGame() {
-        showGame.value = false;
-
-        timeStart.value = 0;
-
-        gameOptions.value.alphabet.value = undefined;
-        gameOptions.value.amount.value = undefined;
-
-        gameLetters.value.ideogram = [];
-        gameLetters.value.translation = [];
-        gameLetters.value.totals = 0;
-
-        doneLetters.value = [];
-
-        correctsCount.value = 0;
-        errorsCount.value = 0;
-    }
-
-    watch(
-        () => selectedLetters,
-        () => {
-            const areBothSelected = Object.values(selectedLetters.value).every((letter) => letter);
-
-            if (areBothSelected) {
-                const ideogram = selectedLetters.value.ideogram;
-                const translation = selectedLetters.value.translation;
-
-                const letter = selectedAlphabet.value.find(
-                    (letter) => letter.ideogram === ideogram,
-                );
-
-                if (letter && letter.translation === translation) {
-                    correctsCount.value++;
-
-                    correctLetters.value.push(`${ideogram}${translation}`);
-
-                    setTimeout(() => {
-                        clearCorrectLetters(`${ideogram}${translation}`);
-
-                        doneLetters.value.push(ideogram, translation);
-                    }, 1000);
-                } else {
-                    errorsCount.value++;
-
-                    errorLetters.value.push(ideogram, translation);
-
-                    setTimeout(() => {
-                        clearErrorLetters(ideogram);
-                        clearErrorLetters(translation);
-                    }, 1000);
-                }
-
-                setTimeout(() => {
-                    selectedLetters.value.ideogram = '';
-                    selectedLetters.value.translation = '';
-                });
-            }
-
-            if (gameLetters.value.totals && gameLetters.value.totals === correctsCount.value) {
-                const timeEnd = new Date().getTime();
-                const time = new Intl.DateTimeFormat(window.navigator.language, {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false,
-                    hourCycle: 'h24',
-                    timeZone: 'UTC',
-                }).format(timeEnd - timeStart.value);
-
-                const percentage = Math.round(
-                    100 - (100 * errorsCount.value) / gameLetters.value.totals,
-                );
-
-                let alertText = `
-                    <div class="grid">
-                        <div>
-                            <div><small>❌ Errors</small></div>
-                            <div><strong>${errorsCount.value}</strong></div>
-                        </div>
-                        <div>
-                            <div><small>⏱️ Time</small></div>
-                            <div><strong>${time}</strong></div>
-                        </div>
-                `;
-
-                if (percentage > 0) {
-                    alertText += `
-                        <div>
-                            <div><small>🎯 Success rate</small></div>
-                            <div><strong>${percentage}%</strong></div>
-                        </div>`;
-                }
-
-                alertText += `</div>`;
-
-                modal(
-                    'success',
-                    'Congratulation!',
-                    alertText,
-                    'Play again',
-                    'New game',
-                    playAgain,
-                    newGame,
-                );
-            }
-        },
-        {
-            deep: true,
-            immediate: true,
-        },
-    );
-
-    onMounted(() => {
-        clearGameOptionsError();
-    });
 
     return {
-        showGame,
+        gameStatus,
         gameOptions,
-        alphabetOptions,
-        amountOptions,
-        gameLetters,
+        gameScore,
+        letterPool,
+        selectedAlphabet,
         selectedLetters,
-        doneLetters,
-        correctLetters,
-        errorLetters,
-        correctsCount,
-        errorsCount,
-        setGameOption,
+        showModal,
         startGame,
-        setSelectedLetters,
-        clearErrorLetters,
-        newGame,
+        resetGame,
+        replayGame,
+        toggleLetterSelection,
+        getLetterStatus,
     };
 });
