@@ -1,5 +1,10 @@
 <template>
-    <UHeader title="Learn Japanese" to="/" mode="drawer">
+    <UHeader
+        title="Learn Japanese"
+        to="/"
+        mode="drawer"
+        :toggle="false"
+    >
         <template #right>
             <UColorModeButton />
 
