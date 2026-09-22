@@ -19,7 +19,7 @@ function getLetterLabel(letter: string) {
 
 <template>
     <div>
-        <div class="mb-4 truncate text-center text-3xl font-bold sm:mb-6 lg:mb-8">
+        <div class="mb-4 truncate text-center text-2xl font-bold sm:mb-6 md:text-3xl lg:mb-8">
             {{ title }}
         </div>
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(70px,1fr))]">

@@ -29,7 +29,7 @@ const { letterPool, gameScore } = storeToRefs(gameStore);
                     <UButton
                         variant="ghost"
                         color="primary"
-                        icon="i-lucide-a-large-small"
+                        icon="i-lucide-languages"
                         tabindex="-1"
                     />
                 </div>
